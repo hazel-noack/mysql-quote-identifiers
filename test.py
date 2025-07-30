@@ -1,9 +1,84 @@
 import unittest
 import logging
-from mysql_quote_identifiers import escape_identifier, IdentifierException
+from mysql_quote_identifiers import escape_identifier, IdentifierException, SqlMode
 
 
 logger = logging.getLogger("mysql_quote_identifiers")
+
+
+class TestQuoteChars(unittest.TestCase):
+    def test_unquoted(self):
+        with self.assertRaises(IdentifierException):
+            escape_identifier("meow``meow", is_quoted=False)
+
+        with self.assertRaises(IdentifierException):
+            escape_identifier("meow`meow", is_quoted=False)
+
+        with self.assertRaises(IdentifierException):
+            escape_identifier('meow""meow', is_quoted=False, sql_mode=[SqlMode.ANSI_QUOTES])
+
+        with self.assertRaises(IdentifierException):
+            escape_identifier('meow"meow', is_quoted=False, sql_mode=[SqlMode.ANSI_QUOTES])
+
+    def test_escaping(self):
+        self.assertEqual(
+            escape_identifier("meow`meow", is_quoted=True, allow_edit=True),
+            "meow``meow",
+        )
+
+        self.assertEqual(
+            escape_identifier("meow``meow", is_quoted=True, allow_edit=True),
+            "meow````meow",
+        )
+
+        self.assertEqual(
+            escape_identifier("m`eow``meow", is_quoted=True, allow_edit=True),
+            "m``eow````meow",
+        )
+
+        self.assertEqual(
+            escape_identifier(
+                'meow"meow', 
+                is_quoted=True, 
+                sql_mode=[SqlMode.ANSI_QUOTES],
+                allow_edit=True,
+            ),
+            'meow""meow',
+        )
+
+    def test_validating(self):
+        with self.assertRaises(IdentifierException):
+            escape_identifier("meow`meow", is_quoted=True, allow_edit=False)
+
+        with self.assertRaises(IdentifierException):
+            escape_identifier("meow```meow", is_quoted=True, allow_edit=False)
+
+        with self.assertRaises(IdentifierException):
+            escape_identifier("me`ow``meow", is_quoted=True, allow_edit=False)
+
+
+        self.assertEqual(
+            escape_identifier("meow``meow", is_quoted=True, allow_edit=False),
+            "meow``meow",
+        )
+
+        self.assertEqual(
+            escape_identifier("meow````meow", is_quoted=True, allow_edit=False),
+            "meow````meow",
+        )
+
+        self.assertEqual(
+            escape_identifier("m``eow``meow", is_quoted=True, allow_edit=False),
+            "m``eow``meow",
+        )
+
+        with self.assertRaises(IdentifierException):
+            escape_identifier('meow"meow', is_quoted=True, allow_edit=False, sql_mode=[SqlMode.ANSI_QUOTES])
+
+        self.assertEqual(
+            escape_identifier('meow""meow', is_quoted=True, allow_edit=False, sql_mode=[SqlMode.ANSI_QUOTES]),
+            'meow""meow',
+        )
 
 
 class TestGeneralQuoted(unittest.TestCase):
@@ -31,7 +106,6 @@ class TestGeneralQuoted(unittest.TestCase):
         for c in cases:
             with self.assertRaises(IdentifierException):
                 escape_identifier(c, is_quoted=True)
-
 
 class TestGeneralUnQuoted(unittest.TestCase):
     def test_legal_characters(self):

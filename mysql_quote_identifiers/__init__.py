@@ -1,3 +1,4 @@
+from typing import Optional, List
 from enum import Enum
 import logging
 import re
@@ -10,6 +11,10 @@ logger = logging.getLogger("mysql_quote_identifiers")
 
 class IdentifierException(Exception):
     pass
+
+
+class SqlMode(Enum):
+    ANSI_QUOTES = 0
 
 
 """
@@ -35,6 +40,8 @@ def escape_identifier(
     identifier: str,
     is_quoted: bool = False,
     oracle_mode: bool = False,
+    sql_mode: Optional[List[SqlMode]] = None,
+    allow_edit: bool = True,
 ) -> str:
     # check if all characters in the identifier are allowed
     allowed_characters = quoted_allowed if is_quoted else unquoted_allowed
@@ -46,6 +53,27 @@ def escape_identifier(
         reserved = RESERVED_WORDS if not oracle_mode else RESERVED_WORDS_ORACLE_MODE
         if identifier in reserved:
             raise IdentifierException("unquoted identifiers can not be reserved words")
+        
+    # quote characters
+    # https://mariadb.com/docs/server/reference/sql-structure/sql-language-structure/identifier-names#quote-character
+    sql_mode = [] if sql_mode is None else sql_mode
+    quote_char = '"' if SqlMode.ANSI_QUOTES in sql_mode else '`'
+    if is_quoted:
+        if allow_edit:
+            identifier = identifier.replace(quote_char, quote_char + quote_char)
+        else:
+            count = 0
+            for char in identifier:
+                if char == quote_char:
+                    count += 1
+                else:
+                    if count % 2 != 0:
+                        raise IdentifierException(f"the quote char {quote_char} needs to be escaped")
+
+                    count = 0
+    else:
+        if quote_char in identifier:
+            raise IdentifierException(f"unquoted identifiers cant contain the quote char {quote_char}")
 
     # implementing further rules https://mariadb.com/docs/server/reference/sql-structure/sql-language-structure/identifier-names#further-rules
     # Database, table and column names can't end with space characters
