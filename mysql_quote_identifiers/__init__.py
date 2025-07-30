@@ -65,4 +65,8 @@ def escape_identifier(
         if numeric == 0 or numeric >= 0x10000:
             raise IdentifierException("identifiers are not permitted to contain the ASCII NUL character (U+0000) and supplementary characters (U+10000 and higher)")
 
+    # Names such as 5e6, 9e are not prohibited, but it's strongly recommended not to use them, as they could lead to ambiguity in certain contexts, being treated as a number or expression.
+    if identifier.replace("e", "", 1).isnumeric():
+        logger.warning("names such as 5e6, 9e are not prohibited, but it's strongly recommended not to use them, as they could lead to ambiguity in certain contexts, being treated as a number or expression")
+
     return identifier
