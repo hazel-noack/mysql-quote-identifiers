@@ -13,6 +13,58 @@ class IdentifierException(Exception):
     pass
 
 
+class IdentifierType(Enum):
+    """
+    https://mariadb.com/docs/server/reference/sql-structure/sql-language-structure/identifier-names#maximum-length:
+    - Databases, tables, columns, indexes, constraints, stored routines, triggers, events, views, tablespaces, servers and log file groups have a maximum length of 64 characters.
+    - Compound statement labels have a maximum length of 16 characters.
+    - Aliases have a maximum length of 256 characters, except for column aliases in CREATE VIEW statements, which are checked against the maximum column length of 64 characters (not the maximum alias length of 256 characters).
+    - Users have a maximum length of 80 characters.
+    - Roles have a maximum length of 128 characters.
+    - Multi-byte characters do not count extra towards the character limit.
+    """
+
+    DATABASE = 1
+    TABLE = 2
+    COLUMN = 3
+    INDEX = 4
+    CONSTRAINT = 5
+    ROUTINE = 6
+    TRIGGER = 7
+    EVENT = 8
+    VIEW = 9
+    TABLESPACE = 10
+    SERVER = 11
+    LOG_FILE_GROUPS = 12
+    COMPOUND_STATEMENT = 13
+    ALIAS = 14
+    COLUMN_ALIAS = 15
+    USER = 16
+    ROLE = 17
+
+
+# Dictionary mapping IdentifierType to maximum length
+IDENTIFIER_LENGTHS = {
+    IdentifierType.DATABASE: 64,
+    IdentifierType.TABLE: 64,
+    IdentifierType.COLUMN: 64,
+    IdentifierType.INDEX: 64,
+    IdentifierType.CONSTRAINT: 64,
+    IdentifierType.ROUTINE: 64,
+    IdentifierType.TRIGGER: 64,
+    IdentifierType.EVENT: 64,
+    IdentifierType.VIEW: 64,
+    IdentifierType.TABLESPACE: 64,
+    IdentifierType.SERVER: 64,
+    IdentifierType.LOG_FILE_GROUPS: 64,
+    IdentifierType.COMPOUND_STATEMENT: 16,
+    IdentifierType.ALIAS: 256,
+    IdentifierType.COLUMN_ALIAS: 64,
+    IdentifierType.USER: 80,
+    IdentifierType.ROLE: 128,
+}
+
+
 class SqlMode(Enum):
     ANSI_QUOTES = 0
 
@@ -42,6 +94,7 @@ def escape_identifier(
     oracle_mode: bool = False,
     sql_mode: Optional[List[SqlMode]] = None,
     allow_edit: bool = True,
+    identifier_type: IdentifierType = IdentifierType.DATABASE   # Database is the default as it has the most common length and the most common special rule
 ) -> str:
     # check if all characters in the identifier are allowed
     allowed_characters = quoted_allowed if is_quoted else unquoted_allowed
@@ -77,8 +130,9 @@ def escape_identifier(
 
     # implementing further rules https://mariadb.com/docs/server/reference/sql-structure/sql-language-structure/identifier-names#further-rules
     # Database, table and column names can't end with space characters
-    if identifier.endswith(" "):
-        raise IdentifierException("database, table and column names can't end with space characters")
+    if identifier_type is IdentifierType.DATABASE or identifier_type is IdentifierType.TABLE or identifier_type is IdentifierType.COLUMN:
+        if identifier.endswith(" "):
+            raise IdentifierException("database, table and column names can't end with space characters")
 
     # Identifier names may begin with a numeral, but can't only contain numerals unless quoted.
     if not is_quoted:

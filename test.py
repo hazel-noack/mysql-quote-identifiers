@@ -1,6 +1,6 @@
 import unittest
 import logging
-from mysql_quote_identifiers import escape_identifier, IdentifierException, SqlMode
+from mysql_quote_identifiers import escape_identifier, IdentifierException, SqlMode, IdentifierType
 
 
 logger = logging.getLogger("mysql_quote_identifiers")
@@ -165,6 +165,40 @@ class TestFurtherRulesQuoted(unittest.TestCase):
         """
         with self.assertRaises(IdentifierException):
             escape_identifier("foo ", is_quoted=True)
+
+        with self.assertRaises(IdentifierException):
+            escape_identifier("foo ", is_quoted=True, identifier_type=IdentifierType.COLUMN)
+        
+        with self.assertRaises(IdentifierException):
+            escape_identifier("foo ", is_quoted=True, identifier_type=IdentifierType.DATABASE)
+
+    def test_whitespaces_allowed(self):
+        self.assertEqual(
+            escape_identifier(
+                "foo ", 
+                is_quoted=True, 
+                identifier_type=IdentifierType.SERVER
+            ),
+            "foo ",
+        )
+
+        self.assertEqual(
+            escape_identifier(
+                "foo ", 
+                is_quoted=True, 
+                identifier_type=IdentifierType.ALIAS
+            ),
+            "foo ",
+        )
+
+        self.assertEqual(
+            escape_identifier(
+                "foo ", 
+                is_quoted=True, 
+                identifier_type=IdentifierType.COMPOUND_STATEMENT
+            ),
+            "foo ",
+        )
 
     def test_allow_numeric(self):
         """
