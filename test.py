@@ -107,6 +107,69 @@ class TestGeneralQuoted(unittest.TestCase):
             with self.assertRaises(IdentifierException):
                 escape_identifier(c, is_quoted=True)
 
+    def test_length_allowed(self):
+        self.assertEqual(
+            escape_identifier(
+                "e" * 64, 
+                is_quoted=True, 
+                identifier_type=IdentifierType.DATABASE
+            ),
+            "e" * 64
+        )
+        
+        self.assertEqual(
+            escape_identifier(
+                "e" * 16, 
+                is_quoted=True, 
+                identifier_type=IdentifierType.COMPOUND_STATEMENT
+            ),
+            "e"*16
+        )
+
+
+        self.assertEqual(
+            escape_identifier(
+                "e``" * 32,
+                allow_edit=False,
+                is_quoted=True, 
+                identifier_type=IdentifierType.DATABASE
+            ),
+            "e``" * 32
+        )
+
+        self.assertEqual(
+            escape_identifier(
+                "asdf",
+                is_quoted=True, 
+                identifier_type=IdentifierType.DATABASE
+            ),
+            "asdf"
+        )
+
+    def test_length_forbidden(self):
+        with self.assertRaises(IdentifierException):
+            escape_identifier(
+                "e" * 66, 
+                is_quoted=True, 
+                identifier_type=IdentifierType.DATABASE
+            )
+        
+        with self.assertRaises(IdentifierException):
+            escape_identifier(
+                "e" * 17, 
+                is_quoted=True, 
+                identifier_type=IdentifierType.COMPOUND_STATEMENT
+            )
+
+        with self.assertRaises(IdentifierException):
+            escape_identifier(
+                "e``" * 123,
+                allow_edit=False,
+                is_quoted=True, 
+                identifier_type=IdentifierType.DATABASE
+            )
+
+
 class TestGeneralUnQuoted(unittest.TestCase):
     def test_legal_characters(self):
         cases = [

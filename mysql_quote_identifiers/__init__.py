@@ -127,6 +127,13 @@ def escape_identifier(
     else:
         if quote_char in identifier:
             raise IdentifierException(f"unquoted identifiers cant contain the quote char {quote_char}")
+        
+    
+    # validate the length
+    # https://mariadb.com/docs/server/reference/sql-structure/sql-language-structure/identifier-names#maximum-length
+    real_length = len(identifier.replace(quote_char + quote_char, quote_char))
+    if real_length > IDENTIFIER_LENGTHS[identifier_type]:
+        raise IdentifierException(f"identifier of type {identifier_type} cant exceed the length of {IDENTIFIER_LENGTHS[identifier_type]}")
 
     # implementing further rules https://mariadb.com/docs/server/reference/sql-structure/sql-language-structure/identifier-names#further-rules
     # Database, table and column names can't end with space characters
