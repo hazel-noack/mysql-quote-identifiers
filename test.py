@@ -11,6 +11,31 @@ class TestGeneralQuoted(unittest.TestCase):
 
 
 class TestGeneralUnQuoted(unittest.TestCase):
+    def test_legal_characters(self):
+        cases = [
+            "foo_bar",
+            "foo_bar_baz",
+            "ä",
+            "meow",
+            "test$test"
+        ]
+
+        for c in cases:
+            self.assertEqual(escape_identifier(c, is_quoted=False), c)
+
+    def test_illegal_characters(self):
+        cases = [
+            "with space",
+            "foo-bar",
+            "foo-bar-baz",
+            "test$test^",
+        ]
+
+        for c in cases:
+            with self.assertRaises(IdentifierException):
+                escape_identifier(c, is_quoted=False)
+
+
     def test_reserve_words(self):
         random_reserved_words = ['SQLWARNING', 'BETWEEN', 'LOCALTIMESTAMP', 'DOUBLE', 'TRAILING', 'ENCLOSED', 'DELAYED', 'SQLWARNING', 'OPTION', 'SCHEMAS']
 

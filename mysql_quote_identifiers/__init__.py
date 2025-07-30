@@ -11,6 +11,7 @@ logger = logging.getLogger("mysql_quote_identifiers")
 class IdentifierException(Exception):
     pass
 
+
 """
 UNQUOTED
 The following characters are valid, and allow identifiers to be unquoted:
@@ -23,8 +24,10 @@ QUOTED
 The following characters are valid, but identifiers using them must be quoted:
     ASCII: U+0001 .. U+007F (full Unicode Basic Multilingual Plane (BMP) except for U+0000)
     Extended: U+0080 .. U+FFFF
-    Identifier quotes can themselves be used as part of an identifier, as long as they are quoted.
+    CANT DO THIS HERE: Identifier quotes can themselves be used as part of an identifier, as long as they are quoted.
 """
+quoted_allowed = re.compile(r'^[\u0001-\u007F\u0080-\uFFFF]+$')
+
 
 # https://stackoverflow.com/questions/51867550/pymysql-escaping-identifiers
 # https://mariadb.com/docs/server/reference/sql-structure/sql-language-structure/identifier-names
@@ -33,6 +36,11 @@ def escape_identifier(
     is_quoted: bool = False,
     oracle_mode: bool = False,
 ) -> str:
+    # check if all characters in the identifier are allowed
+    allowed_characters = quoted_allowed if is_quoted else unquoted_allowed
+    if not allowed_characters.match(identifier):
+        raise IdentifierException("identifier used illegal characters")
+
     # Quoting is optional for identifiers that are not reserved words.
     if not is_quoted:
         reserved = RESERVED_WORDS if not oracle_mode else RESERVED_WORDS_ORACLE_MODE
