@@ -1,13 +1,7 @@
-from mysql_quote_identifiers import escape_identifier, IdentifierType
-
-
-def p_quote_identifier(i):
-    pad_char = ""
-    print(f"{i:{pad_char}<30} => `{escape_identifier(i, IdentifierType.DATABASE)}`")
+import random
+from mysql_quote_identifiers import escape_identifier
+from mysql_quote_identifiers.reserved_words import RESERVED_WORDS, RESERVED_WORDS_ORACLE_MODE
 
 
 if __name__ == "__main__":
-    p_quote_identifier("test test")
-    p_quote_identifier("test test \\")
-    p_quote_identifier("test`; SELECT * FROM user")
-    p_quote_identifier("test`; SELECT * FROM user ")
+    print(random.choices(list(RESERVED_WORDS), k=10))

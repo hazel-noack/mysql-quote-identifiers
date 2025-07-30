@@ -1,5 +1,8 @@
 from enum import Enum
 import logging
+import re
+
+from .reserved_words import RESERVED_WORDS, RESERVED_WORDS_ORACLE_MODE
 
 
 logger = logging.getLogger("mysql_quote_identifiers")
@@ -8,35 +11,33 @@ logger = logging.getLogger("mysql_quote_identifiers")
 class IdentifierException(Exception):
     pass
 
-
-class IdentifierType(Enum):
-    DATABASE = 0
-    TABLE = 1
-    COLUMN = 2
-
-
-class ANSI_QUOTES(Enum):
-    BACKTICKS = '`'
-    DOUBLE_QUOTES = '"'
-    SQUARE_BRACKETS = '[]'
-
-
-MALICIOUS_CHARACTER = ["`", "\\"]
-
+"""
+UNQUOTED
+The following characters are valid, and allow identifiers to be unquoted:
+- ASCII: [0-9,a-z,A-Z$_] (numerals 0-9, basic Latin letters, both lowercase and uppercase, dollar sign, underscore)
+- Extended: U+0080 .. U+FFFF
+"""
+unquoted_allowed = re.compile(r'^[0-9a-zA-Z_\$\u0080-\uFFFF]+$')
+"""
+QUOTED
+The following characters are valid, but identifiers using them must be quoted:
+    ASCII: U+0001 .. U+007F (full Unicode Basic Multilingual Plane (BMP) except for U+0000)
+    Extended: U+0080 .. U+FFFF
+    Identifier quotes can themselves be used as part of an identifier, as long as they are quoted.
+"""
 
 # https://stackoverflow.com/questions/51867550/pymysql-escaping-identifiers
 # https://mariadb.com/docs/server/reference/sql-structure/sql-language-structure/identifier-names
 def escape_identifier(
     identifier: str,
-    is_quoted: bool = False
+    is_quoted: bool = False,
+    oracle_mode: bool = False,
 ) -> str:
-    quoted = ""
-    for char in identifier:
-        if char in MALICIOUS_CHARACTER:
-            char = "\\" + char
-        
-        quoted += char
-    identifier = quoted
+    # Quoting is optional for identifiers that are not reserved words.
+    if not is_quoted:
+        reserved = RESERVED_WORDS if not oracle_mode else RESERVED_WORDS_ORACLE_MODE
+        if identifier in reserved:
+            raise IdentifierException("unquoted identifiers can not be reserved words")
 
     # implementing further rules https://mariadb.com/docs/server/reference/sql-structure/sql-language-structure/identifier-names#further-rules
     # Database, table and column names can't end with space characters

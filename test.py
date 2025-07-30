@@ -6,6 +6,32 @@ from mysql_quote_identifiers import escape_identifier, IdentifierException
 logger = logging.getLogger("mysql_quote_identifiers")
 
 
+class TestGeneralQuoted(unittest.TestCase):
+    pass
+
+
+class TestGeneralUnQuoted(unittest.TestCase):
+    def test_reserve_words(self):
+        random_reserved_words = ['SQLWARNING', 'BETWEEN', 'LOCALTIMESTAMP', 'DOUBLE', 'TRAILING', 'ENCLOSED', 'DELAYED', 'SQLWARNING', 'OPTION', 'SCHEMAS']
+
+        for reserved_word in random_reserved_words:
+            with self.assertRaises(IdentifierException):
+                escape_identifier(reserved_word, is_quoted=False, oracle_mode=False)
+
+    def test_reserve_words_no_oracle_mode(self):
+        random_reserved_words = ['ROWTYPE', 'SYSTEM', 'RAISE', 'SYSTEM', 'VERSIONING', 'ROWTYPE', 'ROWTYPE', 'PACKAGE', 'RAISE']
+
+        for reserved_word in random_reserved_words:
+            self.assertEqual(escape_identifier(reserved_word, is_quoted=False, oracle_mode=False), reserved_word)
+
+    def test_reserve_words_oracle_mode(self):
+        random_reserved_words = ['ROWTYPE', 'SYSTEM', 'RAISE', 'SYSTEM', 'VERSIONING', 'ROWTYPE', 'MINUS (> 10.6.0)', 'ROWTYPE', 'PACKAGE', 'RAISE']
+
+        for reserved_word in random_reserved_words:
+            with self.assertRaises(IdentifierException):
+                escape_identifier(reserved_word, is_quoted=False, oracle_mode=True)
+
+
 class TestFurtherRulesQuoted(unittest.TestCase):
     """
     Testing the further rules section of the spec
