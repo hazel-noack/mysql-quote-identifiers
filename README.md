@@ -7,7 +7,9 @@ I tried to strictly work with the [mariadb specs on identifier names](https://ma
 
 ## Limitations
 
-User variables cannot be used as part of an identifier, or as an identifier in an SQL statement.
+> User variables cannot be used as part of an identifier, or as an identifier in an SQL statement.
+
+There is no way I can get the user variables properly, thus I also can not validate those. So a sql injection where the attacker puts a user variable in that reveals something **might** be possible.
 
 ## License
 
