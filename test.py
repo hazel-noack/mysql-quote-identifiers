@@ -48,7 +48,24 @@ class TestFurtherRulesQuoted(unittest.TestCase):
         with self.assertRaises(IdentifierException):
             escape_identifier("foo\U00010670bar", is_quoted=True)
 
+    def test_ambiguity(self):
+        """
+        Names such as 5e6, 9e are not prohibited, but it's strongly recommended not to use them, as they could lead to ambiguity in certain contexts, being treated as a number or expression.
+        """
 
+        with self.assertLogs(logger, level=logging.WARNING) as cm:
+            escape_identifier("5e6", is_quoted=True)
+            self.assertIn(
+                "WARNING:mysql_quote_identifiers:names such as 5e6, 9e are not prohibited, but it's strongly recommended not to use them, as they could lead to ambiguity in certain contexts, being treated as a number or expression", 
+                cm.output
+            )
+
+        with self.assertLogs(logger, level=logging.WARNING) as cm:
+            escape_identifier("9e", is_quoted=True)
+            self.assertIn(
+                "WARNING:mysql_quote_identifiers:names such as 5e6, 9e are not prohibited, but it's strongly recommended not to use them, as they could lead to ambiguity in certain contexts, being treated as a number or expression", 
+                cm.output
+            )
 
 class TestFurtherRulesUnQuoted(unittest.TestCase):
     """
