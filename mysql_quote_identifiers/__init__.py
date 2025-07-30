@@ -26,7 +26,7 @@ MALICIOUS_CHARACTER = ["`", "\\"]
 
 # https://stackoverflow.com/questions/51867550/pymysql-escaping-identifiers
 # https://mariadb.com/docs/server/reference/sql-structure/sql-language-structure/identifier-names
-def escape_quoted_identifier(
+def escape_identifier(
     identifier: str,
     is_quoted: bool = False
 ) -> str:

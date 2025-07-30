@@ -1,9 +1,9 @@
-from mysql_quote_identifiers import escape_quoted_identifier, IdentifierType
+from mysql_quote_identifiers import escape_identifier, IdentifierType
 
 
 def p_quote_identifier(i):
     pad_char = ""
-    print(f"{i:{pad_char}<30} => `{escape_quoted_identifier(i, IdentifierType.DATABASE)}`")
+    print(f"{i:{pad_char}<30} => `{escape_identifier(i, IdentifierType.DATABASE)}`")
 
 
 if __name__ == "__main__":
