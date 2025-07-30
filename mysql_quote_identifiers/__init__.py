@@ -6,6 +6,14 @@ import re
 from .reserved_words import RESERVED_WORDS, RESERVED_WORDS_ORACLE_MODE
 
 
+__all__ = [
+    "escape_identifier",
+    "IdentifierException",
+    "IdentifierType",
+    "SqlMode",
+]
+
+
 logger = logging.getLogger("mysql_quote_identifiers")
 
 
@@ -90,7 +98,7 @@ quoted_allowed = re.compile(r'^[\u0001-\u007F\u0080-\uFFFF]+$')
 # https://mariadb.com/docs/server/reference/sql-structure/sql-language-structure/identifier-names
 def escape_identifier(
     identifier: str,
-    is_quoted: bool = False,
+    is_quoted: bool = True,
     oracle_mode: bool = False,
     sql_mode: Optional[List[SqlMode]] = None,
     allow_edit: bool = True,
