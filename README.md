@@ -2,6 +2,8 @@
 
 The python mysql connector has no way to safely quote identifiers like table names or database names. This library implements basic functions to do that.
 
+If you find a security vulnerability PLEASE open an issue or a pull request.
+
 ## License
 
-This project is licensed under the [**🏳️‍🌈 Opinionated Queer License v1.2**](https://oql.avris.it/license). So use is strictly prohibited for cops, military and everyone who actively works against human rights.
+This library uses the MIT License. Do whatever you want with it.
