@@ -43,4 +43,9 @@ def escape_quoted_identifier(
     if identifier.endswith(" "):
         raise IdentifierException("database, table and column names can't end with space characters")
 
+    # Identifier names may begin with a numeral, but can't only contain numerals unless quoted.
+    if not is_quoted:
+        if identifier.isnumeric():
+            raise IdentifierException("identifier names may begin with a numeral, but can't only contain numerals unless quoted")
+
     return identifier
