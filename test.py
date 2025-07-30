@@ -18,6 +18,9 @@ class TestFurtherRulesQuoted(unittest.TestCase):
         with self.assertRaises(IdentifierException):
             escape_quoted_identifier("foo ", is_quoted=True)
 
+    def test_allow_numeric(self):
+        self.assertEqual(escape_quoted_identifier("1234", is_quoted=True), "1234")
+
 
 class TestFurtherRulesUnQuoted(unittest.TestCase):
     """
@@ -30,4 +33,15 @@ class TestFurtherRulesUnQuoted(unittest.TestCase):
         """
         with self.assertRaises(IdentifierException):
             escape_quoted_identifier("foo ", is_quoted=False)
+
+    """
+    Identifier names may begin with a numeral, but can't only contain numerals unless quoted.
+    """
+
+    def test_numeric(self):
+        with self.assertRaises(IdentifierException):
+            escape_quoted_identifier("1234", is_quoted=False)
+
+    def test_non_numeric(self):
+        self.assertEqual(escape_quoted_identifier("1d", is_quoted=False), "1d")
 
