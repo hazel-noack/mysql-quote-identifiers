@@ -1,6 +1,6 @@
 import unittest
 import logging
-from mysql_quote_identifiers import escape_quoted_identifier, escape_unquoted_identifier, IdentifierException
+from mysql_quote_identifiers import escape_quoted_identifier, IdentifierException
 
 
 logger = logging.getLogger("mysql_quote_identifiers")
@@ -16,7 +16,7 @@ class TestFurtherRulesQuoted(unittest.TestCase):
         Database, table and column names can't end with space characters
         """
         with self.assertRaises(IdentifierException):
-            escape_quoted_identifier("foo ")
+            escape_quoted_identifier("foo ", is_quoted=True)
 
 
 class TestFurtherRulesUnQuoted(unittest.TestCase):
@@ -29,5 +29,5 @@ class TestFurtherRulesUnQuoted(unittest.TestCase):
         Database, table and column names can't end with space characters
         """
         with self.assertRaises(IdentifierException):
-            escape_unquoted_identifier("foo ")
+            escape_quoted_identifier("foo ", is_quoted=False)
 
