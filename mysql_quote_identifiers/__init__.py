@@ -48,4 +48,15 @@ def escape_quoted_identifier(
         if identifier.isnumeric():
             raise IdentifierException("identifier names may begin with a numeral, but can't only contain numerals unless quoted")
 
+    # An identifier starting with a numeral, followed by an 'e', may be parsed as a floating point number, and needs to be quoted.
+    if not is_quoted:
+        for char in identifier:
+            if char.isnumeric():
+                continue
+
+            if char == "e":
+                raise IdentifierException("an identifier starting with a numeral, followed by an 'e', may be parsed as a floating point number, and needs to be quoted")
+            else:
+                break
+
     return identifier
