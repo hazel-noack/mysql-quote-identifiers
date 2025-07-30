@@ -61,6 +61,8 @@ def escape_identifier(
 
     # Identifiers are not permitted to contain the ASCII NUL character (U+0000) and supplementary characters (U+10000 and higher).
     for char in identifier:
-        print(ord(char))
+        numeric = ord(char)
+        if numeric == 0 or numeric >= 0x10000:
+            raise IdentifierException("identifiers are not permitted to contain the ASCII NUL character (U+0000) and supplementary characters (U+10000 and higher)")
 
     return identifier

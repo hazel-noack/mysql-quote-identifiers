@@ -28,6 +28,27 @@ class TestFurtherRulesQuoted(unittest.TestCase):
     def test_allow_float(self):
         self.assertEqual(escape_identifier("1234e", is_quoted=True), "1234e")
 
+    """
+    Identifiers are not permitted to contain the ASCII NUL character (U+0000) and supplementary characters (U+10000 and higher).
+    """
+    def test_no_null(self):
+        with self.assertRaises(IdentifierException):
+            escape_identifier("foo\u0000bar", is_quoted=True)
+
+    def test_no_supplementary(self):
+        with self.assertRaises(IdentifierException):
+            escape_identifier("foo\U00010000bar", is_quoted=True)
+
+        with self.assertRaises(IdentifierException):
+            escape_identifier("foo\U00010200bar", is_quoted=True)
+        
+        with self.assertRaises(IdentifierException):
+            escape_identifier("foo\U00010060bar", is_quoted=True)
+
+        with self.assertRaises(IdentifierException):
+            escape_identifier("foo\U00010670bar", is_quoted=True)
+
+
 
 class TestFurtherRulesUnQuoted(unittest.TestCase):
     """
@@ -65,3 +86,23 @@ class TestFurtherRulesUnQuoted(unittest.TestCase):
 
     def test_is_no_float(self):
         self.assertEqual(escape_identifier("1234de", is_quoted=False), "1234de")
+
+    """
+    Identifiers are not permitted to contain the ASCII NUL character (U+0000) and supplementary characters (U+10000 and higher).
+    """
+    def test_no_null(self):
+        with self.assertRaises(IdentifierException):
+            escape_identifier("foo\u0000bar", is_quoted=False)
+
+    def test_no_supplementary(self):
+        with self.assertRaises(IdentifierException):
+            escape_identifier("foo\U00010000bar", is_quoted=False)
+
+        with self.assertRaises(IdentifierException):
+            escape_identifier("foo\U00010200bar", is_quoted=False)
+        
+        with self.assertRaises(IdentifierException):
+            escape_identifier("foo\U00010060bar", is_quoted=False)
+
+        with self.assertRaises(IdentifierException):
+            escape_identifier("foo\U00010670bar", is_quoted=False)
