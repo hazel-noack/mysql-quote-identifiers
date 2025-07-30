@@ -1,5 +1,8 @@
 import unittest
 import logging
+from pathlib import Path
+import json
+
 from mysql_quote_identifiers import escape_identifier, IdentifierException, SqlMode, IdentifierType
 
 
@@ -368,3 +371,17 @@ class TestFurtherRulesUnQuoted(unittest.TestCase):
 
         with self.assertRaises(IdentifierException):
             escape_identifier("foo\U00010670bar", is_quoted=False)
+
+
+class TestAdditionalTestCases(unittest.TestCase):
+    def test_cases(self):
+        p = Path("hidden_test_cases.json")
+        if not p.exists():
+            return
+        
+        test_cases = []
+        with p.open("r") as f:
+            test_cases = json.load(f)
+
+        for c in test_cases:
+            self.assertEqual(escape_identifier(c, is_quoted=True), c)
