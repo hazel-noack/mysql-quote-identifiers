@@ -15,9 +15,6 @@ license-files = [
 ]
 version = "0.0.0"
 
-[project.scripts]
-mysql-quote-identifiers = "mysql_quote_identifiers.__main__:cli"
-
 [project.urls]
 Homepage = "https://gitea.elara.ws/Hazel/mysql-quote-identifiers"
 Issues = "https://gitea.elara.ws/Hazel/mysql-quote-identifiers/issues"
