@@ -7,7 +7,30 @@ logger = logging.getLogger("mysql_quote_identifiers")
 
 
 class TestGeneralQuoted(unittest.TestCase):
-    pass
+    def test_legal_characters(self):
+        cases = [
+            "foo_bar",
+            "foo_bar_baz",
+            "ä",
+            "meow",
+            "test$test",
+            "with space",
+            "foo-bar",
+            "foo-bar-baz",
+            "test$test^",
+        ]
+
+        for c in cases:
+            self.assertEqual(escape_identifier(c, is_quoted=True), c)
+
+    def test_illegal_characters(self):
+        cases = [
+            "test$test^\U00010000"
+        ]
+
+        for c in cases:
+            with self.assertRaises(IdentifierException):
+                escape_identifier(c, is_quoted=True)
 
 
 class TestGeneralUnQuoted(unittest.TestCase):
