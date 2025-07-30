@@ -24,11 +24,19 @@ class ANSI_QUOTES(Enum):
 MALICIOUS_CHARACTER = ["`", "\\"]
 
 
+def escape_unquoted_identifier(identifier: str) -> str:
+    # implementing further rules https://mariadb.com/docs/server/reference/sql-structure/sql-language-structure/identifier-names#further-rules
+    # Database, table and column names can't end with space characters
+    if identifier.endswith(" "):
+        raise IdentifierException("database, table and column names can't end with space characters")
+
+    return identifier
+
+
 # https://stackoverflow.com/questions/51867550/pymysql-escaping-identifiers
 # https://mariadb.com/docs/server/reference/sql-structure/sql-language-structure/identifier-names
-def quote_identifier(
+def escape_quoted_identifier(
     identifier: str,
-    identifier_type: IdentifierType
 ) -> str:
     quoted = ""
     for char in identifier:
