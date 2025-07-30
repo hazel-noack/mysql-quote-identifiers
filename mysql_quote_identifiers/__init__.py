@@ -59,4 +59,8 @@ def escape_identifier(
             else:
                 break
 
+    # Identifiers are not permitted to contain the ASCII NUL character (U+0000) and supplementary characters (U+10000 and higher).
+    for char in identifier:
+        print(ord(char))
+
     return identifier
