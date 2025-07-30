@@ -1,4 +1,8 @@
 from enum import Enum
+import logging
+
+
+logger = logging.getLogger("mysql_quote_identifiers")
 
 
 class IdentifierException(Exception):
