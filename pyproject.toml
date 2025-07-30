@@ -1,0 +1,36 @@
+[project]
+name = "mysql-quote-identifiers"
+dependencies = []
+dynamic = []
+authors = []
+description = "The python mysql connector has no way to safely quote identifiers like table names or database names. This library implements basic functions to do that."
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license-files = [
+    "LICENSE"
+]
+version = "0.0.0"
+
+[project.scripts]
+mysql-quote-identifiers = "mysql_quote_identifiers.__main__:cli"
+
+[project.urls]
+Homepage = "https://gitea.elara.ws/Hazel/mysql-quote-identifiers"
+Issues = "https://gitea.elara.ws/Hazel/mysql-quote-identifiers/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+directory = "dist"
+
+[tool.hatch.build.targets.sdist]
+include = ["mysql_quote_identifiers/*.py"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["mysql_quote_identifiers"]
