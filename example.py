@@ -24,5 +24,23 @@ def demo():
     print(escape_identifier('foo"bar', sql_mode=[SqlMode.ANSI_QUOTES])) # > "foo""bar"
 
 
+EXAMPLE_QUERY = """
+CREATE TABLE {table} (
+    `id` int,
+    {column} varchar(255)
+); 
+"""
+
+def use_case():
+    table = input("table to create: ")
+    column = input("column to create: ")
+
+    # like you can see, the quotes are added automatically, so they don't have to be in the template
+    print(EXAMPLE_QUERY.format(
+        table = escape_identifier(table, identifier_type=IdentifierType.TABLE),
+        column = escape_identifier(column, identifier_type=IdentifierType.COLUMN)
+    ))
+
+
 if __name__ == "__main__":
-    demo()
+    use_case()

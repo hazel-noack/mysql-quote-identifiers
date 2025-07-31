@@ -75,6 +75,7 @@ IDENTIFIER_LENGTHS = {
 
 class SqlMode(Enum):
     ANSI_QUOTES = 0
+    ORACLE = 1
 
 
 """
@@ -99,11 +100,12 @@ quoted_allowed = re.compile(r'^[\u0001-\u007F\u0080-\uFFFF]+$')
 def escape_identifier(
     identifier: str,
     is_quoted: bool = True,
-    oracle_mode: bool = False,
     sql_mode: Optional[List[SqlMode]] = None,
     only_validate: bool = False,
     identifier_type: IdentifierType = IdentifierType.DATABASE   # Database is the default as it has the most common length and the most common special rule
 ) -> str:
+    sql_mode = [] if sql_mode is None else sql_mode
+
     # check if all characters in the identifier are allowed
     allowed_characters = quoted_allowed if is_quoted else unquoted_allowed
     if not allowed_characters.match(identifier):
@@ -111,13 +113,12 @@ def escape_identifier(
 
     # Quoting is optional for identifiers that are not reserved words.
     if not is_quoted:
-        reserved = RESERVED_WORDS if not oracle_mode else RESERVED_WORDS_ORACLE_MODE
+        reserved = RESERVED_WORDS if SqlMode.ORACLE not in sql_mode else RESERVED_WORDS_ORACLE_MODE
         if identifier in reserved:
             raise IdentifierException("unquoted identifiers can not be reserved words")
         
     # quote characters
     # https://mariadb.com/docs/server/reference/sql-structure/sql-language-structure/identifier-names#quote-character
-    sql_mode = [] if sql_mode is None else sql_mode
     quote_char = '"' if SqlMode.ANSI_QUOTES in sql_mode else '`'
 
     identifier_no_quote = identifier

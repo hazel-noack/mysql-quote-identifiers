@@ -50,6 +50,12 @@ print(escape_identifier('foo"bar', sql_mode=[SqlMode.ANSI_QUOTES])) # > "foo""ba
 
 ```
 
+A minor detail is, that you cant use [reserved words](https://mariadb.com/docs/server/reference/sql-structure/sql-language-structure/reserved-words) with unquoted identifiers. If [ORACLE mode](https://mariadb.com/docs/release-notes/community-server/about/compatibility-and-differences/sql_modeoracle) is enabled there are more reserved words that can be used. You can enable it by passing `SqlMode.ORACLE` in the function.
+
+```python
+escape_identifier("foo", is_quoted=False, sql_mode=[SqlMode.ORACLE])
+```
+
 ## Limitations
 
 > User variables cannot be used as part of an identifier, or as an identifier in an SQL statement.
