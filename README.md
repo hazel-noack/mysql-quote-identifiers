@@ -56,6 +56,51 @@ A minor detail is, that you cant use [reserved words](https://mariadb.com/docs/s
 escape_identifier("foo", is_quoted=False, sql_mode=[SqlMode.ORACLE])
 ```
 
+### Use Case
+
+Here is an example how you can use this library as safely as possible:
+
+```python
+from mysql_quote_identifiers import escape_identifier, IdentifierType
+
+
+EXAMPLE_QUERY = """
+CREATE TABLE {table} (
+    `id` int,
+    {column} varchar(255)
+); 
+"""
+
+def use_case():
+    table = input("table to create: ")
+    column = input("column to create: ")
+
+    # like you can see, the quotes are added automatically, so they don't have to be in the template
+    print(EXAMPLE_QUERY.format(
+        table = escape_identifier(table, identifier_type=IdentifierType.TABLE),
+        column = escape_identifier(column, identifier_type=IdentifierType.COLUMN)
+    ))
+
+
+if __name__ == "__main__":
+    use_case()
+```
+
+As you can see this escapes + validates the identifiers and protects sql injections from happening. Here is an example of an sql injection being prevented:
+
+```
+table to create: foo`; SELECT * FROM users;
+column to create: bar
+
+CREATE TABLE `foo``; SELECT * FROM users;` (
+    `id` int,
+    `bar` varchar(255)
+);
+```
+
+If you want to you can try running it and confirm it working.
+
+
 ## Limitations
 
 > User variables cannot be used as part of an identifier, or as an identifier in an SQL statement.
