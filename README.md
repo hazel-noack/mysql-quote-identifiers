@@ -116,6 +116,47 @@ Here are the best practices to follow to make it as secure as possible:
 
 There is no way I can get the user variables properly, thus I also can not validate those. So a sql injection where the attacker puts a user variable in that reveals something **might** be possible.
 
+## Development
+
+Install the python package in a virtual environment. Then you can install the package locally and simply import the package. You can just use a test scrip to test stuff and try out stuff. Don't commit that file though.
+
+```sh
+git clone git@github.com:hazel-noack/mysql-quote-identifiers.git
+cd mysql-quote-identifiers
+
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .
+```
+
+It is important to have full test coverage. The tests are defined in `test.py`. To run them just use `unittest`. It should look like this:
+
+```sh
+> python -m unittest
+
+.names such as 5e6, 9e are not prohibited, but it's strongly recommended not to use them, as they could lead to ambiguity in certain contexts, being treated as a number or expression
+.names such as 5e6, 9e are not prohibited, but it's strongly recommended not to use them, as they could lead to ambiguity in certain contexts, being treated as a number or expression
+...........................
+----------------------------------------------------------------------
+Ran 29 tests in 0.003s
+
+OK
+```
+
+### Additional Test
+
+You can define additional tests you don't want to commit in `hidden_test_cases.json`. Here is an example:
+
+```json
+[
+    "foo",
+    "bar",
+    "foo-bar"
+]
+```
+
+All of these tests have to be valid as quoted identifiers.
+
 ## License
 
 This library uses the MIT License. Do whatever you want with it.
