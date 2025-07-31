@@ -100,6 +100,14 @@ CREATE TABLE `foo``; SELECT * FROM users;` (
 
 If you want to you can try running it and confirm it working.
 
+### Best Practices
+
+Here are the best practices to follow to make it as secure as possible:
+
+1. always use quoted identifiers
+2. always check if `ANSI_QUOTES` is set
+3. always check if `ORACLE MODE` is set
+
 
 ## Limitations
 
