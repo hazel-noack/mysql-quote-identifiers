@@ -9,8 +9,12 @@ from mysql_quote_identifiers import escape_identifier, IdentifierException, SqlM
 logger = logging.getLogger("mysql_quote_identifiers")
 
 
+def add_quotes(i: str, q: str = "`") -> str:
+    return q + i + q
+
+
 class TestQuoteChars(unittest.TestCase):
-    def test_unquoted(self):
+    def test_unquoted_containing_quote_char(self):
         with self.assertRaises(IdentifierException):
             escape_identifier("meow``meow", is_quoted=False)
 
@@ -26,17 +30,17 @@ class TestQuoteChars(unittest.TestCase):
     def test_escaping(self):
         self.assertEqual(
             escape_identifier("meow`meow", is_quoted=True, only_validate=False),
-            "meow``meow",
+            add_quotes("meow``meow"),
         )
 
         self.assertEqual(
             escape_identifier("meow``meow", is_quoted=True, only_validate=False),
-            "meow````meow",
+            add_quotes("meow````meow"),
         )
 
         self.assertEqual(
             escape_identifier("m`eow``meow", is_quoted=True, only_validate=False),
-            "m``eow````meow",
+            add_quotes("m``eow````meow"),
         )
 
         self.assertEqual(
@@ -46,41 +50,62 @@ class TestQuoteChars(unittest.TestCase):
                 sql_mode=[SqlMode.ANSI_QUOTES],
                 only_validate=False,
             ),
-            'meow""meow',
+            add_quotes('meow""meow', '"'),
         )
 
-    def test_validating(self):
-        with self.assertRaises(IdentifierException):
-            escape_identifier("meow`meow", is_quoted=True, only_validate=True)
-
-        with self.assertRaises(IdentifierException):
-            escape_identifier("meow```meow", is_quoted=True, only_validate=True)
-
-        with self.assertRaises(IdentifierException):
-            escape_identifier("me`ow``meow", is_quoted=True, only_validate=True)
-
-
+        # add wrapper quotes even if they already exist
         self.assertEqual(
-            escape_identifier("meow``meow", is_quoted=True, only_validate=True),
-            "meow``meow",
+            escape_identifier("`meow`meow`", is_quoted=True, only_validate=False),
+            add_quotes("``meow``meow``"),
         )
 
-        self.assertEqual(
-            escape_identifier("meow````meow", is_quoted=True, only_validate=True),
-            "meow````meow",
-        )
 
-        self.assertEqual(
-            escape_identifier("m``eow``meow", is_quoted=True, only_validate=True),
-            "m``eow``meow",
-        )
+    def test_validating_fail(self):
+        with self.assertRaises(IdentifierException):
+            escape_identifier("`meow`meow`", is_quoted=True, only_validate=True)
 
         with self.assertRaises(IdentifierException):
-            escape_identifier('meow"meow', is_quoted=True, only_validate=True, sql_mode=[SqlMode.ANSI_QUOTES])
+            escape_identifier("`meow```meow`", is_quoted=True, only_validate=True)
 
+        with self.assertRaises(IdentifierException):
+            escape_identifier("`me`ow``meow`", is_quoted=True, only_validate=True)
+
+        with self.assertRaises(IdentifierException):
+            escape_identifier('"meow"meow"', is_quoted=True, only_validate=True, sql_mode=[SqlMode.ANSI_QUOTES])
+
+        # insufficient wrapping quotes
+        with self.assertRaises(IdentifierException):
+            escape_identifier("meow_meow`", is_quoted=True, only_validate=True)
+
+        with self.assertRaises(IdentifierException):
+            escape_identifier("meow_meow", is_quoted=True, only_validate=True)
+        
+        with self.assertRaises(IdentifierException):
+            escape_identifier("`meow_meow", is_quoted=True, only_validate=True)
+
+        with self.assertRaises(IdentifierException):
+            escape_identifier("meow``meow`", is_quoted=True, only_validate=True)
+
+        with self.assertRaises(IdentifierException):
+            escape_identifier('"meow_meow', is_quoted=True, only_validate=True, sql_mode=[SqlMode.ANSI_QUOTES])
+
+    def test_validating_success(self):
+        cases = [
+            add_quotes("meow``meow"),
+            add_quotes("meow````meow"),
+            add_quotes("m``eow``meow"),
+        ]
+
+        for c in cases:
+            self.assertEqual(
+                escape_identifier(c, is_quoted=True, only_validate=True),
+                c
+            )
+        
+        c = add_quotes('meow""meow', '"')
         self.assertEqual(
-            escape_identifier('meow""meow', is_quoted=True, only_validate=True, sql_mode=[SqlMode.ANSI_QUOTES]),
-            'meow""meow',
+            escape_identifier(c, is_quoted=True, only_validate=True, sql_mode=[SqlMode.ANSI_QUOTES]),
+            c
         )
 
 
@@ -99,7 +124,7 @@ class TestGeneralQuoted(unittest.TestCase):
         ]
 
         for c in cases:
-            self.assertEqual(escape_identifier(c, is_quoted=True), c)
+            self.assertEqual(escape_identifier(c, is_quoted=True), add_quotes(c))
 
     def test_illegal_characters(self):
         cases = [
@@ -117,7 +142,7 @@ class TestGeneralQuoted(unittest.TestCase):
                 is_quoted=True, 
                 identifier_type=IdentifierType.DATABASE
             ),
-            "e" * 64
+            add_quotes("e" * 64)
         )
         
         self.assertEqual(
@@ -126,18 +151,18 @@ class TestGeneralQuoted(unittest.TestCase):
                 is_quoted=True, 
                 identifier_type=IdentifierType.COMPOUND_STATEMENT
             ),
-            "e"*16
+            add_quotes("e"*16)
         )
 
 
         self.assertEqual(
             escape_identifier(
-                "e``" * 32,
+                add_quotes("e``" * 32),
                 only_validate=True,
                 is_quoted=True, 
                 identifier_type=IdentifierType.DATABASE
             ),
-            "e``" * 32
+            add_quotes("e``" * 32)
         )
 
         self.assertEqual(
@@ -146,13 +171,13 @@ class TestGeneralQuoted(unittest.TestCase):
                 is_quoted=True, 
                 identifier_type=IdentifierType.DATABASE
             ),
-            "asdf"
+            add_quotes("asdf")
         )
 
     def test_length_forbidden(self):
         with self.assertRaises(IdentifierException):
             escape_identifier(
-                "e" * 66, 
+                "e" * 65, 
                 is_quoted=True, 
                 identifier_type=IdentifierType.DATABASE
             )
@@ -245,7 +270,7 @@ class TestFurtherRulesQuoted(unittest.TestCase):
                 is_quoted=True, 
                 identifier_type=IdentifierType.SERVER
             ),
-            "foo ",
+            add_quotes("foo "),
         )
 
         self.assertEqual(
@@ -254,7 +279,7 @@ class TestFurtherRulesQuoted(unittest.TestCase):
                 is_quoted=True, 
                 identifier_type=IdentifierType.ALIAS
             ),
-            "foo ",
+            add_quotes("foo "),
         )
 
         self.assertEqual(
@@ -263,7 +288,7 @@ class TestFurtherRulesQuoted(unittest.TestCase):
                 is_quoted=True, 
                 identifier_type=IdentifierType.COMPOUND_STATEMENT
             ),
-            "foo ",
+            add_quotes("foo "),
         )
 
     def test_allow_numeric(self):
@@ -271,10 +296,10 @@ class TestFurtherRulesQuoted(unittest.TestCase):
         Identifier names may begin with a numeral, but can't only contain numerals unless quoted.
         """
             
-        self.assertEqual(escape_identifier("1234", is_quoted=True), "1234")
+        self.assertEqual(escape_identifier("1234", is_quoted=True), add_quotes("1234"))
 
     def test_allow_float(self):
-        self.assertEqual(escape_identifier("1234e", is_quoted=True), "1234e")
+        self.assertEqual(escape_identifier("1234e", is_quoted=True), add_quotes("1234e"))
 
     """
     Identifiers are not permitted to contain the ASCII NUL character (U+0000) and supplementary characters (U+10000 and higher).
@@ -384,4 +409,4 @@ class TestAdditionalTestCases(unittest.TestCase):
             test_cases = json.load(f)
 
         for c in test_cases:
-            self.assertEqual(escape_identifier(c, is_quoted=True), c)
+            self.assertEqual(escape_identifier(c, is_quoted=True), add_quotes(c))
