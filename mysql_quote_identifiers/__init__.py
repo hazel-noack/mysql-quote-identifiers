@@ -104,6 +104,31 @@ def escape_identifier(
     only_validate: bool = False,
     identifier_type: IdentifierType = IdentifierType.DATABASE   # Database is the default as it has the most common length and the most common special rule
 ) -> str:
+    """
+    Validates and escapes SQL identifiers according to MariaDB/MySQL rules.
+    
+    This function handles both quoted and unquoted identifiers, though quoted identifiers
+    are strongly recommended for security. The function will either automatically wrap
+    identifiers in appropriate quotes or validate existing quotes.
+    
+    Args:
+        identifier: The SQL identifier to escape/validate (e.g., table, column name)
+        is_quoted: If True (default), handles as quoted identifier. If False, handles as
+            unquoted identifier (NOT RECOMMENDED for security reasons)
+        only_validate: If True, only validates without escaping
+        identifier_type: Specifies the type of identifier (DATABASE, TABLE, etc.) for
+            additional validation rules
+        sql_mode: List of SQL modes that affect quoting behavior, particularly:
+            - SqlMode.ANSI_QUOTES: Uses double quotes instead of backticks
+            - SqlMode.ORACLE: Enables Oracle compatibility mode (affects reserved words)
+    
+    Returns:
+        The properly escaped identifier (unless only_validate=True)
+    
+    Raises:
+        IdentifierException: If the identifier contains illegal characters or violates
+            validation rules for its type
+    """
     sql_mode = [] if sql_mode is None else sql_mode
 
     # check if all characters in the identifier are allowed
