@@ -410,8 +410,3 @@ class TestAdditionalTestCases(unittest.TestCase):
 
         for c in test_cases:
             self.assertEqual(escape_identifier(c, is_quoted=True), add_quotes(c))
-
-
-class TestDebugFail(unittest.TestCase):
-    def test_fail(self):
-        self.assertEqual("foo", "bar")
