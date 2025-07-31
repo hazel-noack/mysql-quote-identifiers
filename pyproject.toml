@@ -18,8 +18,8 @@ license-files = [
 version = "0.0.0"
 
 [project.urls]
-Homepage = "https://gitea.elara.ws/Hazel/mysql-quote-identifiers"
-Issues = "https://gitea.elara.ws/Hazel/mysql-quote-identifiers/issues"
+Homepage = "https://github.com/hazel-noack/mysql-quote-identifiers"
+Issues = "https://github.com/hazel-noack/mysql-quote-identifiers/issues"
 
 [build-system]
 requires = ["hatchling"]
