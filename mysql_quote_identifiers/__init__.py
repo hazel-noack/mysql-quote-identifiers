@@ -119,10 +119,15 @@ def escape_identifier(
     # https://mariadb.com/docs/server/reference/sql-structure/sql-language-structure/identifier-names#quote-character
     sql_mode = [] if sql_mode is None else sql_mode
     quote_char = '"' if SqlMode.ANSI_QUOTES in sql_mode else '`'
+
+    identifier_no_quote = identifier
     if is_quoted:
         if only_validate:
+            if not identifier.startswith(quote_char) or not identifier.endswith(quote_char):
+                raise IdentifierException("identifier needs to start and end with " + quote_char + "to be quoted")
+
             count = 0
-            for char in identifier:
+            for char in identifier[1:-1]:
                 if char == quote_char:
                     count += 1
                 else:
@@ -131,7 +136,9 @@ def escape_identifier(
 
                     count = 0
         else:
-            identifier = identifier.replace(quote_char, quote_char + quote_char)
+            identifier = quote_char + identifier.replace(quote_char, quote_char + quote_char) + quote_char
+
+        identifier_no_quote = identifier[1:-1]
 
     else:
         if quote_char in identifier:
@@ -140,14 +147,19 @@ def escape_identifier(
     
     # validate the length
     # https://mariadb.com/docs/server/reference/sql-structure/sql-language-structure/identifier-names#maximum-length
-    real_length = len(identifier.replace(quote_char + quote_char, quote_char))
-    if real_length > IDENTIFIER_LENGTHS[identifier_type]:
+    def get_real_length() -> int:
+        if not is_quoted:
+            return len(identifier)
+        else:
+            return len(identifier_no_quote.replace(quote_char + quote_char, quote_char))
+
+    if get_real_length() > IDENTIFIER_LENGTHS[identifier_type]:
         raise IdentifierException(f"identifier of type {identifier_type} cant exceed the length of {IDENTIFIER_LENGTHS[identifier_type]}")
 
     # implementing further rules https://mariadb.com/docs/server/reference/sql-structure/sql-language-structure/identifier-names#further-rules
     # Database, table and column names can't end with space characters
     if identifier_type is IdentifierType.DATABASE or identifier_type is IdentifierType.TABLE or identifier_type is IdentifierType.COLUMN:
-        if identifier.endswith(" "):
+        if identifier_no_quote.endswith(" "):
             raise IdentifierException("database, table and column names can't end with space characters")
 
     # Identifier names may begin with a numeral, but can't only contain numerals unless quoted.
@@ -173,7 +185,7 @@ def escape_identifier(
             raise IdentifierException("identifiers are not permitted to contain the ASCII NUL character (U+0000) and supplementary characters (U+10000 and higher)")
 
     # Names such as 5e6, 9e are not prohibited, but it's strongly recommended not to use them, as they could lead to ambiguity in certain contexts, being treated as a number or expression.
-    if identifier.replace("e", "", 1).isnumeric():
+    if identifier_no_quote.replace("e", "", 1).isnumeric():
         logger.warning("names such as 5e6, 9e are not prohibited, but it's strongly recommended not to use them, as they could lead to ambiguity in certain contexts, being treated as a number or expression")
 
     return identifier
