@@ -101,7 +101,7 @@ def escape_identifier(
     is_quoted: bool = True,
     oracle_mode: bool = False,
     sql_mode: Optional[List[SqlMode]] = None,
-    allow_edit: bool = True,
+    only_validate: bool = False,
     identifier_type: IdentifierType = IdentifierType.DATABASE   # Database is the default as it has the most common length and the most common special rule
 ) -> str:
     # check if all characters in the identifier are allowed
@@ -120,9 +120,7 @@ def escape_identifier(
     sql_mode = [] if sql_mode is None else sql_mode
     quote_char = '"' if SqlMode.ANSI_QUOTES in sql_mode else '`'
     if is_quoted:
-        if allow_edit:
-            identifier = identifier.replace(quote_char, quote_char + quote_char)
-        else:
+        if only_validate:
             count = 0
             for char in identifier:
                 if char == quote_char:
@@ -132,6 +130,9 @@ def escape_identifier(
                         raise IdentifierException(f"the quote char {quote_char} needs to be escaped")
 
                     count = 0
+        else:
+            identifier = identifier.replace(quote_char, quote_char + quote_char)
+
     else:
         if quote_char in identifier:
             raise IdentifierException(f"unquoted identifiers cant contain the quote char {quote_char}")
