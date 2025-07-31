@@ -3,7 +3,7 @@ name = "mysql-quote-identifiers"
 dependencies = []
 dynamic = []
 authors = [
-    {name = "Hazel Noack", email = "hazel@webcontact.de"},
+    {name = "Hazel Noack", email = "hazel@webcontact.de"}, 
 ]
 description = "The python mysql connector has no way to safely quote identifiers like table names or database names. This library implements basic functions to do that."
 readme = "README.md"
