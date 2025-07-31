@@ -13,12 +13,23 @@ pip install mysql-quote-identifiers
 
 ## Usage
 
+The main function is `mysql_quote_identifiers.escape_identifier`.
+
+It validates and escapes quoted identifiers, because that is way safer, but it can also do that with unquoted identifiers. If you want this, set the argument `is_quoted` to `False`. However, I **STRONGLY recommend not doing that**.
+
+If you use it with quoted identifiers, the library will either automatically wrap the identifier in the quotes, or will validate if the quotes are there.
+
+The library escapes the identifiers, and raises `IdentifierException` where it can't. If you only want to validate the identifier, you can add the argument `only_validate`.
+
+MariaDB has the `SQL_MODE` flag `ANSI_QUOTES`. This changes the quoting character from a backtick `` ` `` to a normal quote `"`. You can enable this by turning on by passing `sql_mode=[SqlMode.ANSI_QUOTES]` in the function. **IMPORTANT:** if that isn't configured correctly it opens up your software to sql injection so try out what the mode on you server is.
+
 ```python
 from mysql_quote_identifiers import escape_identifier, IdentifierException, IdentifierType,  SqlMode
 
 
-print(escape_identifier("foo-bar")) # > foo-bar
-print(escape_identifier("foo`bar")) # > foo``bar
+print(escape_identifier("foo-bar")) # > `foo-bar`
+print(escape_identifier("foo`bar")) # > `foo``bar`
+print(escape_identifier("foo_bar", is_quoted=False))    # > foo_bar
 
 
 # you can also use this for unquoted fields
@@ -35,7 +46,8 @@ except IdentifierException as e:
     print(e)    # > database, table and column names can't end with space characters
 
 # you can also use the ANSI_QUOTE SQL_MODE
-print(escape_identifier('foo"bar', sql_mode=[SqlMode.ANSI_QUOTES])) # > foo""bar
+print(escape_identifier('foo"bar', sql_mode=[SqlMode.ANSI_QUOTES])) # > "foo""bar"
+
 ```
 
 ## Limitations
