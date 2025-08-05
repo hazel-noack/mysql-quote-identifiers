@@ -15,7 +15,7 @@ classifiers = [
 license-files = [
     "LICENSE"
 ]
-version = "0.0.1"
+version = "0.0.2"
 
 [project.urls]
 Homepage = "https://github.com/hazel-noack/mysql-quote-identifiers"
